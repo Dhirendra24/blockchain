@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+
+  blockchain_db:
+    image: library/postgres:9.6
+    environment:
+      - POSTGRES_USER=blockchain_user
+      - POSTGRES_PASSWORD=blockchain_password
+      - POSTGRES_DB=blockchain_db
+    volumes:
+      - ./blockchain-data:/var/lib/postgresql/data
+
+  blockchain-service:
+    build: .
+    environment:
+      - ENV_NAME=local
+    volumes:
+      - .:/codebase
+    ports:
+      - "3000:3000"
+    depends_on:
+      - blockchain_db
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        echo waiting... &&
+        ./script/wait_for_it.sh -s -t 0 blockchain_db:5432 &&
+        npm start
+      "
