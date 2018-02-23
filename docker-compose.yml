@@ -10,6 +10,7 @@ services:
       - POSTGRES_DB=blockchain_db
     volumes:
       - ./blockchain-data:/var/lib/postgresql/data
+      - ./script:/schema
 
   blockchain-service:
     build: .
