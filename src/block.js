@@ -25,10 +25,7 @@ module.exports = class Block {
             contract: {
 
             },
-            author_contracts: {
-
-            },
-            contract_on_content: {
+            content_contract: {
 
             }
         }
@@ -39,10 +36,7 @@ module.exports = class Block {
     }
 
     verifyContent() {
-        if (this.state["author"].hasOwnProperty(this.data["author"])) {
-            return true;
-        }
-        return false
+        return this.state["author"].hasOwnProperty(this.data["author"]);
     }
 
     updateAuthorState() {
@@ -55,5 +49,29 @@ module.exports = class Block {
         if (!this.state["content"].hasOwnProperty(this.data["content"])) {
             this.state["content"][this.data["content"]] = Object.keys(this.state["content"]).length;
         }
+    }
+
+    updateContractState() {
+        if (!this.state["contract"].hasOwnProperty(this.data["contract"])) {
+            this.state["contract"][this.data["contract"]] = Object.keys(this.state["contract"]).length;
+        }
+    }
+
+    updateContentContractState() {
+        const content = this.state["content"][this.data["content"]];
+        const actions = this.data["action"];
+        const actionList = Object.keys(actions);
+        for (let i = 0; i < actionList.length; i++) {
+            const type = actionList[i];
+            const contract = actions[type]["contract"];
+            const params = actions[type]["params"];
+            this.state["content_contract"][content] = {
+                contract: this.state["contract"][contract],
+                type: type
+            }
+        }
+        Object.keys(actions).forEach(function (type) {
+
+        });
     }
 };

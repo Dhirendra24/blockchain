@@ -5,5 +5,7 @@ module.exports.registerRoutes = function(app) {
     app.get('/blocks', Controller.getBlocks);
     app.post('/addAuthor', Controller.addAuthor),
     app.post('/addContent', Controller.addContent),
+    app.post('/addContract', Controller.addContract),
+    app.post('/addContentContract', Controller.addContentContract),
     app.post('/mineBlock', Controller.mine);
 };

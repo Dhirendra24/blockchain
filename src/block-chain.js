@@ -50,6 +50,18 @@ module.exports = class BlockChain {
         return undefined;
     };
 
+    addAuthor(authorData) {
+        const newAuthor = this.generateNextBlock(authorData);
+        if (this.isValidNewBlock(newAuthor, this.getLatestBlock())) {
+            newAuthor.updateAuthorState();
+            this.blockChain.push(newAuthor);
+            console.log('block added: ' + JSON.stringify(newAuthor));
+            return newAuthor;
+        }
+        console.log('Verification Failed.', JSON.stringify(newAuthor));
+        return undefined;
+    };
+
     addContent(contentData) {
         const newContent = this.generateNextBlock(contentData);
         if (newContent.verifyContent() && this.isValidNewBlock(newContent, this.getLatestBlock())) {
@@ -60,16 +72,29 @@ module.exports = class BlockChain {
         }
         console.log('Verification Failed.', JSON.stringify(newContent));
         return undefined;
-    }
-    addAuthor(authorData) {
-        const newAuthor = this.generateNextBlock(authorData);
-        if (this.isValidNewBlock(newAuthor, this.getLatestBlock())) {
-            newAuthor.updateAuthorState();
-            this.blockChain.push(newAuthor);
-            console.log('block added: ' + JSON.stringify(newAuthor));
-            return newAuthor;
+    };
+
+    addContract(contentData) {
+        const newContract = this.generateNextBlock(contentData);
+        if (this.isValidNewBlock(newContract, this.getLatestBlock())) {
+            newContract.updateContractState();
+            this.blockChain.push(newContract);
+            console.log('block added: ' + JSON.stringify(newContract));
+            return newContract;
         }
-        console.log('Verification Failed.', JSON.stringify(newAuthor));
+        console.log('Verification Failed.', JSON.stringify(newContract));
+        return undefined;
+    }
+
+    addContentContract(contentData) {
+        const newContract = this.generateNextBlock(contentData);
+        if (this.isValidNewBlock(newContract, this.getLatestBlock())) {
+            newContract.updateContentContractState();
+            this.blockChain.push(newContract);
+            console.log('block added: ' + JSON.stringify(newContract));
+            return newContract;
+        }
+        console.log('Verification Failed.', JSON.stringify(newContract));
         return undefined;
     }
 };
