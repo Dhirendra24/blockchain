@@ -1,31 +1,83 @@
 version: '3'
 
 services:
-
-  blockchain_db:
-    image: library/postgres:9.6
-    environment:
-      - POSTGRES_USER=blockchain_user
-      - POSTGRES_PASSWORD=blockchain_password
-      - POSTGRES_DB=blockchain_db
-    volumes:
-      - ./blockchain-data:/var/lib/postgresql/data
-      - ./script:/schema
-
-  blockchain-service:
+  miner-1:
     build: .
     environment:
-      - ENV_NAME=local
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    ports:
+      - "3001:3000"
     volumes:
       - .:/codebase
-    ports:
-      - "3000:3000"
-    depends_on:
-      - blockchain_db
     command: >
       bash -c "
         ln -s --force /packages/node_modules /codebase/node_modules &&
-        echo waiting... &&
-        ./script/wait_for_it.sh -s -t 0 blockchain_db:5432 &&
+        npm start
+      "
+  miner-2:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3002:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-3:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3003:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-4:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3004:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-5:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3005:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
         npm start
       "

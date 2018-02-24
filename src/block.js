@@ -1,58 +1,59 @@
 'use strict';
-import {calculateHash} from "./crypto";
 
-class Block {
-    constructor(index, previousHash, timestamp, data, hash) {
+const TRANSACTION_TYPE = {
+    ADD_CONTRACT: "ADD_CONTRACT",
+    ADD_CONTENT: "ADD_CONTENT",
+    ADD_AUTHOR: "ADD_AUTHOR",
+    EXECUTE_CONTRACT: "EXECUTE_CONTRACT",
+};
+
+module.exports = class Block {
+    constructor(index, hash, previousHash, data, timestamp, nonce) {
         this.index = index;
         this.hash = hash.toString();
         this.previousHash = previousHash.toString();
         this.data = data;
         this.timestamp = timestamp;
-    }
+        this.nonce = nonce;
+        this.state = {
+            content: {
 
-}
+            },
+            author: {
 
-module.exports.BlockChain = class BlockChain {
-    blockChain;
-    constructor () {
-        this.blockChain = [this.getGenesisBlock()]
-    }
+            },
+            contract: {
 
-    getBlocks = function () {
-        return JSON.stringify(this.blockChain);
-    };
+            },
+            author_contracts: {
 
-    getGenesisBlock = function getGenesisBlock() {
-        return new Block(
-            0,
-            "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7",
-            "0",
-            "My Genesis Block",
-            1465154705
-        );
-    };
+            },
+            contract_on_content: {
 
-    getLatestBlock = function () {
-        return this.blockChain[this.blockChain - 1];
-    };
-
-    generateNextBlock = function(blockData) {
-        var previousBlock = this.getLatestBlock();
-        var nextIndex = previousBlock.index + 1;
-        var nextTimestamp = new Date().getTime() / 1000;
-        var nextHash = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, blockData);
-        return new Block(nextIndex, nextHash, previousBlock.hash, blockData, nextTimestamp);
-    };
-
-    isValidNewBlock = function(newBlock, previousBlock) {
-        return true;
-    };
-
-    addBlock = function(blockData) {
-        const newBlock = this.generateNextBlock(blockData);
-        // validate
-        if (this.isValidNewBlock(newBlock, this.getLatestBlock())) {
-            this.blockChain.push(newBlock);
+            }
         }
-    };
-}
+    }
+
+    copyPreviousState (previousBlock) {
+        this.state = JSON.parse(JSON.stringify(previousBlock.state));
+    }
+
+    verifyContent() {
+        if (this.state["author"].hasOwnProperty(this.data["author"])) {
+            return true;
+        }
+        return false
+    }
+
+    updateAuthorState() {
+        if (!this.state["author"].hasOwnProperty(this.data["author"])) {
+            this.state["author"][this.data["author"]] = Object.keys(this.state["author"]).length;
+        }
+    }
+
+    updateContentState() {
+        if (!this.state["content"].hasOwnProperty(this.data["content"])) {
+            this.state["content"][this.data["content"]] = Object.keys(this.state["content"]).length;
+        }
+    }
+};
