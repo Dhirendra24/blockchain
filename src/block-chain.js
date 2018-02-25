@@ -11,7 +11,7 @@ class BlockChain {
     }
 
     getBlocks() {
-        return JSON.stringify(this.blockChain);
+        return this.blockChain;
     };
 
     getGenesisBlock() {
@@ -20,7 +20,7 @@ class BlockChain {
             "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7",
             "0",
             "Genesis Block",
-            1465154705
+            new Date().getDate() / 1000,
         );
     };
 
@@ -54,7 +54,6 @@ class BlockChain {
             console.log('Invalid Hash: ' + crypto.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
             return false;
         }
-
         const waitTime = Math.floor(Math.random() * 1000);
         utils.waitSync(waitTime);
         return true;
@@ -80,7 +79,7 @@ class BlockChain {
                 return block;
             }
         }
-        return null;
+        return {};
     };
 
     addAuthor(authorData) {
@@ -122,6 +121,11 @@ class BlockChain {
     addContentContract(contentData) {
         const newContract = this.generateNextBlock(contentData);
         if (this.isValidBlock(newContract, this.getLatestBlock())) {
+            const previousContentBlock = this.getBlock(newContract.state["content"][newContract["content"]]);
+            newContract.data = {
+                ...previousContentBlock.data,
+                ...newContract.data
+            };
             newContract.updateContentContractState();
             this.blockChain.push(newContract);
             console.log('block added: ' + JSON.stringify(newContract));
@@ -152,6 +156,10 @@ class BlockChain {
         const contentContract = contentData["content"]["actions"][action]["contract"];
         const contentContractParams = contentData["content"]["actions"][action]["params"];
         const contentEntities = contractExecutionData["entities"];
+        contentEntities["verifier"] = {
+            address: "miner",
+            "required": false
+        };
         const executionPayload = {
             contract: contentContract,
             params: contentContractParams,

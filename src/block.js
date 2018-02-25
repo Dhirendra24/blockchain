@@ -37,36 +37,40 @@ module.exports = class Block {
     }
 
     updateAuthorState() {
-        if (!this.state["author"].hasOwnProperty(this.data["address"])) {
-            this.state["author"][this.data["address"]] = this.index;
-        }
+        // if (!this.state["author"].hasOwnProperty(this.data["address"])) {
+        this.state["author"][this.data["address"]] = this.index;
+        // }
     }
 
     updateContentState() {
-        if (!this.state["content"].hasOwnProperty(this.data["address"])) {
+        // if (!this.state["content"].hasOwnProperty(this.data["address"])) {
             this.state["content"][this.data["address"]] = this.index;
             this.updateContentContractState();
-        }
-    }
+        // }
+    };
 
     updateContractState() {
-        if (!this.state["contract"].hasOwnProperty(this.data["address"])) {
-            this.state["contract"][this.data["address"]] = this.index;
-        }
+        // if (!this.state["contract"].hasOwnProperty(this.data["address"])) {
+        this.state["contract"][this.data["address"]] = this.index;
+        // }
     }
 
     updateContentContractState() {
-        const content = this.state["content"][this.data["address"]];
+        const previousContent = this.state["content"][this.data["address"]];
+        this.state["content"][this.data["address"]] = this.index;
         const actions = this.data["content"]["actions"];
-        if (!this.state["content_contract"].hasOwnProperty(content)) {
-            this.state["content_contract"][content] = {};
+        if (this.state["content_contract"].hasOwnProperty(previousContent)) {
+            this.state["content_contract"][this.index] = this.state["content_contract"][previousContent];
+            delete this.state["content_contract"][previousContent]
+        } else {
+            this.state["content_contract"][this.index] = {}
         }
         const actionList = Object.keys(actions);
         for (let i = 0; i < actionList.length; i++) {
             const type = actionList[i];
             const contract = actions[type]["contract"];
             const params = actions[type]["params"];
-            this.state["content_contract"][content][type] = {
+            this.state["content_contract"][this.index][type] = {
                 contract: this.state["contract"][contract]
             }
         }
@@ -76,7 +80,7 @@ module.exports = class Block {
         const transactions = this.data["txns"];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
-            const transactionType = transaction["type"];
+            const transactionType = transaction["tx_type"];
 
             const to = transaction["to"];
             const from = transaction["from"];
@@ -98,6 +102,12 @@ module.exports = class Block {
                     "state": state
                 })
             } else if (transactionType === "user-credit") {
+                if (!this.state["user_credit"].hasOwnProperty(from)) {
+                    this.state["user_credit"][from] = 0;
+                }
+                if (!this.state["user_credit"].hasOwnProperty(to)) {
+                    this.state["user_credit"][to] = 0;
+                }
                 this.state["user_credit"][from] -= value;
                 this.state["user_credit"][to] += value;
             }

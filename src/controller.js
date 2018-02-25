@@ -10,6 +10,14 @@ module.exports.getBlocks = function (req, res) {
     res.send(blockChain.getBlocks());
 };
 
+module.exports.getLatestBlock = function (req, res) {
+    res.send(blockChain.getLatestBlock());
+};
+
+module.exports.getBlock = function (req, res) {
+    res.send(blockChain.getBlock(Number(req.params.index)));
+};
+
 /**
  * Format of Author
  * {
@@ -156,7 +164,7 @@ module.exports.executeContract = function executeContract(req, res) {
         }
         res.status(200).send();
     }).catch(function (err) {
-        console.log(err);
+        console.log("error occurred while executing contract.");
         res.status(200).send();
     });
 };
