@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  miner-1:
+    build: .
+    environment:
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/codebase
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-2:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3002:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-3:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-4:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3003:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-4:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-5:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3004:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
+  miner-5:
+    build: .
+    environment:
+      - PEERS=ws://miner-1:6000
+      - PEERS=ws://miner-2:6000
+      - PEERS=ws://miner-3:6000
+      - PEERS=ws://miner-4:6000
+    volumes:
+      - .:/codebase
+    ports:
+      - "3005:3000"
+    command: >
+      bash -c "
+        ln -s --force /packages/node_modules /codebase/node_modules &&
+        npm start
+      "
