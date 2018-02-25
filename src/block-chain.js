@@ -2,6 +2,7 @@
 const Block = require('./block');
 const crypto = require("./crypto");
 const HttpClient = require('./http_client');
+const utils = require('./utils');
 
 class BlockChain {
     constructor () {
@@ -23,6 +24,10 @@ class BlockChain {
         );
     };
 
+    getBlockChainSize() {
+        return this.blockChain.length;
+    };
+
     getLatestBlock() {
         return this.blockChain[this.blockChain.length - 1];
     };
@@ -37,9 +42,36 @@ class BlockChain {
         return nextBlock;
     };
 
-    isValidNewBlock(newBlock, previousBlock) {
+    isValidBlock(newBlock, previousBlock) {
+        if (previousBlock.index + 1 !== newBlock.index) {
+            console.log('Invalid Index');
+            return false;
+        } else if (previousBlock.hash !== newBlock.previousHash) {
+            console.log('Invalid PreviousHash');
+            return false;
+        } else if (crypto.calculateHashForBlock(newBlock) !== newBlock.hash) {
+            console.log(typeof (newBlock.hash) + ' ' + typeof crypto.calculateHashForBlock(newBlock));
+            console.log('Invalid Hash: ' + crypto.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
+            return false;
+        }
+
+        const waitTime = Math.floor(Math.random() * 1000);
+        utils.waitSync(waitTime);
         return true;
     };
+
+    isValidChain(blockChainToValidate) {
+        if (JSON.stringify(blockChainToValidate[0]) !== JSON.stringify(this.getGenesisBlock())) {
+            return false;
+        }
+        for (let i = 1; i < blockChainToValidate.length; i++) {
+            if (!this.isValidBlock(blockChainToValidate[i], blockChainToValidate[i - 1])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
 
     getBlock(index) {
         for (let i = 0; i < this.blockChain.length; i++) {
@@ -49,22 +81,11 @@ class BlockChain {
             }
         }
         return null;
-    }
-
-    addBlock(blockData) {
-        const newBlock = this.generateNextBlock(blockData);
-        // validate
-        if (this.isValidNewBlock(newBlock, this.getLatestBlock())) {
-            this.blockChain.push(newBlock);
-            return newBlock;
-        }
-        console.log('Verification Failed.', newBlock);
-        return undefined;
     };
 
     addAuthor(authorData) {
         const newAuthor = this.generateNextBlock(authorData);
-        if (this.isValidNewBlock(newAuthor, this.getLatestBlock())) {
+        if (this.isValidBlock(newAuthor, this.getLatestBlock())) {
             newAuthor.updateAuthorState();
             this.blockChain.push(newAuthor);
             console.log('block added: ' + JSON.stringify(newAuthor));
@@ -76,7 +97,7 @@ class BlockChain {
 
     addContent(contentData) {
         const newContent = this.generateNextBlock(contentData);
-        if (newContent.verifyContent() && this.isValidNewBlock(newContent, this.getLatestBlock())) {
+        if (newContent.verifyContent() && this.isValidBlock(newContent, this.getLatestBlock())) {
             newContent.updateContentState();
             this.blockChain.push(newContent);
             console.log('block added: ' + JSON.stringify(newContent));
@@ -88,7 +109,7 @@ class BlockChain {
 
     addContract(contentData) {
         const newContract = this.generateNextBlock(contentData);
-        if (this.isValidNewBlock(newContract, this.getLatestBlock())) {
+        if (this.isValidBlock(newContract, this.getLatestBlock())) {
             newContract.updateContractState();
             this.blockChain.push(newContract);
             console.log('block added: ' + JSON.stringify(newContract));
@@ -96,11 +117,11 @@ class BlockChain {
         }
         console.log('Verification Failed.', JSON.stringify(newContract));
         return undefined;
-    }
+    };
 
     addContentContract(contentData) {
         const newContract = this.generateNextBlock(contentData);
-        if (this.isValidNewBlock(newContract, this.getLatestBlock())) {
+        if (this.isValidBlock(newContract, this.getLatestBlock())) {
             newContract.updateContentContractState();
             this.blockChain.push(newContract);
             console.log('block added: ' + JSON.stringify(newContract));
@@ -108,11 +129,11 @@ class BlockChain {
         }
         console.log('Verification Failed.', JSON.stringify(newContract));
         return undefined;
-    }
+    };
 
     makeTransaction(transactionData) {
         const newTransactions = this.generateNextBlock(transactionData);
-        if (this.isValidNewBlock(newTransactions, this.getLatestBlock())) {
+        if (this.isValidBlock(newTransactions, this.getLatestBlock())) {
             newTransactions.updateTransactionState();
             this.blockChain.push(newTransactions);
             console.log('block added: ' + JSON.stringify(newTransactions));
@@ -120,7 +141,7 @@ class BlockChain {
         }
         console.log('Verification Failed.', JSON.stringify(newTransactions));
         return undefined;
-    }
+    };
 
     executeContract(contractExecutionData) {
         const latestBlock = this.getLatestBlock();
@@ -130,15 +151,14 @@ class BlockChain {
         const action = contractExecutionData["action"];
         const contentContract = contentData["content"]["actions"][action]["contract"];
         const contentContractParams = contentData["content"]["actions"][action]["params"];
-        const contentEntities = contentData["entities"];
-        const contentAddress = contentData["address"];
+        const contentEntities = contractExecutionData["entities"];
         const executionPayload = {
             contract: contentContract,
             params: contentContractParams,
-            entities: contentEntities.concat(contentAddress)
+            entities: contentEntities
         };
         return this.httpClient.post(executionPayload);
-    }
-};
+    };
+}
 
 module.exports = new BlockChain();

@@ -1,22 +1,13 @@
 'use strict';
 const blockChain = require("./block-chain");
-
 const main = require('./main');
 
 module.exports.healthCheck = function (req, resp) {
-    console.log("Success");
     resp.send({message: "Success"});
 };
 
 module.exports.getBlocks = function (req, res) {
     res.send(blockChain.getBlocks());
-};
-
-module.exports.mine = function mine(req, res) {
-    const newBlock = blockChain.addBlock(req.body);
-    main.broadcast(main.responseLatestMsg());
-    console.log('block added: ' + JSON.stringify(newBlock));
-    res.send(newBlock);
 };
 
 /**
@@ -27,12 +18,12 @@ module.exports.mine = function mine(req, res) {
  *  "verification_signature": <>
  * }
  */
-module.exports.addAuthor = function addContent(req, res) {
+module.exports.addAuthor = function addAuthor(req, res) {
     const newContent = blockChain.addAuthor(req.body);
     if (newContent){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newContent);
+    res.status(200).send();
 };
 
 /**
@@ -66,7 +57,7 @@ module.exports.addContent = function addContent(req, res) {
     if (newContent){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newContent);
+    res.status(200).send();
 };
 
 /**
@@ -81,7 +72,7 @@ module.exports.addContract = function addContract(req, res) {
     if (newContract){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newContract);
+    res.status(200).send();
 };
 
 /**
@@ -115,7 +106,7 @@ module.exports.addContentContract = function addContentContract(req, res) {
     if (newContentContract){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newContentContract);
+    res.status(200).send();
 };
 
 /**
@@ -139,7 +130,7 @@ module.exports.makeTransaction = function makeTransaction(req, res) {
     if (newTransaction){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newTransaction);
+    res.status(200).send();
 };
 
 /**
@@ -147,13 +138,14 @@ module.exports.makeTransaction = function makeTransaction(req, res) {
  * {
  *      "content": <content address>,
  *      "action": <action buy/rent>,
+ *      "entities": [list of users],
  *      "payload": {}
  * }
  * Execution Request Data
  * {
  *      "contract": "<contract address>",
  *      "params": {},
- *      "entities": [] + <content address>
+ *      "entities": []
  * }
  */
 module.exports.executeContract = function executeContract(req, res) {
@@ -162,9 +154,9 @@ module.exports.executeContract = function executeContract(req, res) {
         if (newTransaction){
             main.broadcast(main.responseLatestMsg());
         }
-        res.send(newTransaction);
+        res.status(200).send();
     }).catch(function (err) {
         console.log(err);
-        res.send();
+        res.status(200).send();
     });
 };

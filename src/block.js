@@ -1,12 +1,5 @@
 'use strict';
 
-const TRANSACTION_TYPE = {
-    ADD_CONTRACT: "ADD_CONTRACT",
-    ADD_CONTENT: "ADD_CONTENT",
-    ADD_AUTHOR: "ADD_AUTHOR",
-    EXECUTE_CONTRACT: "EXECUTE_CONTRACT",
-};
-
 module.exports = class Block {
     constructor(index, hash, previousHash, data, timestamp, nonce) {
         this.index = index;
@@ -83,11 +76,12 @@ module.exports = class Block {
         const transactions = this.data["txns"];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
+            const transactionType = transaction["type"];
+
             const to = transaction["to"];
             const from = transaction["from"];
             const value = transaction["value"];
             const action = transaction["action"];
-            const transactionType = transaction["type"];
 
             if (transactionType === "user-content") {
                 const state = transaction["state"];
