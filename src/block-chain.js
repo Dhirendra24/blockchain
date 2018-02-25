@@ -1,10 +1,12 @@
 'use strict';
 const Block = require('./block');
 const crypto = require("./crypto");
+const HttpClient = require('./http_client');
 
-module.exports = class BlockChain {
+class BlockChain {
     constructor () {
-        this.blockChain = [this.getGenesisBlock()]
+        this.blockChain = [this.getGenesisBlock()];
+        this.httpClient = new HttpClient();
     }
 
     getBlocks() {
@@ -16,7 +18,7 @@ module.exports = class BlockChain {
             0,
             "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7",
             "0",
-            "My Genesis Block",
+            "Genesis Block",
             1465154705
         );
     };
@@ -38,6 +40,16 @@ module.exports = class BlockChain {
     isValidNewBlock(newBlock, previousBlock) {
         return true;
     };
+
+    getBlock(index) {
+        for (let i = 0; i < this.blockChain.length; i++) {
+            const block = this.blockChain[i];
+            if (index === block.index) {
+                return block;
+            }
+        }
+        return null;
+    }
 
     addBlock(blockData) {
         const newBlock = this.generateNextBlock(blockData);
@@ -97,4 +109,36 @@ module.exports = class BlockChain {
         console.log('Verification Failed.', JSON.stringify(newContract));
         return undefined;
     }
+
+    makeTransaction(transactionData) {
+        const newTransactions = this.generateNextBlock(transactionData);
+        if (this.isValidNewBlock(newTransactions, this.getLatestBlock())) {
+            newTransactions.updateTransactionState();
+            this.blockChain.push(newTransactions);
+            console.log('block added: ' + JSON.stringify(newTransactions));
+            return newTransactions;
+        }
+        console.log('Verification Failed.', JSON.stringify(newTransactions));
+        return undefined;
+    }
+
+    executeContract(contractExecutionData) {
+        const latestBlock = this.getLatestBlock();
+        const contentIndex = latestBlock.getContentIndex(contractExecutionData["content"]);
+        const contentBlock = this.getBlock(contentIndex);
+        const contentData = contentBlock.data;
+        const action = contractExecutionData["action"];
+        const contentContract = contentData["content"]["actions"][action]["contract"];
+        const contentContractParams = contentData["content"]["actions"][action]["params"];
+        const contentEntities = contentData["entities"];
+        const contentAddress = contentData["address"];
+        const executionPayload = {
+            contract: contentContract,
+            params: contentContractParams,
+            entities: contentEntities.concat(contentAddress)
+        };
+        return this.httpClient.post(executionPayload);
+    }
 };
+
+module.exports = new BlockChain();

@@ -1,8 +1,7 @@
 'use strict';
-const BlockChain = require("./block-chain");
+const blockChain = require("./block-chain");
 
 const main = require('./main');
-const blockChain = new BlockChain();
 
 module.exports.healthCheck = function (req, resp) {
     console.log("Success");
@@ -53,7 +52,13 @@ module.exports.addAuthor = function addContent(req, res) {
  *      }
  *  },
  *  "address: "<content address>",
- *  "entities": ["<list user address>"]
+ *  "entities": {
+ *      "<key>": {
+ *          "address": [list of addresses],
+ *          "required": boolean
+ *      },
+ *      ...
+ *  }
  * }
  */
 module.exports.addContent = function addContent(req, res) {
@@ -83,7 +88,13 @@ module.exports.addContract = function addContract(req, res) {
  * Format of Content Contract
  * {
  *  "address": "<content address>"
- *  "entities": ["<list user address>"],
+ *  "entities": {
+ *      "<key>": {
+ *          "address": [list of addresses],
+ *          "required": boolean
+ *      },
+ *      ...
+ *  },
  *  "content": {
  *      "actions": {
  *          "buy": {
@@ -108,38 +119,52 @@ module.exports.addContentContract = function addContentContract(req, res) {
 };
 
 /**
+ * Transactions Types:
+ * - User to
  * {
  *      "req_account": <>
  *      "txns": [
  *          {
  *              "to": <user address>, (buyer address for BUY) - depends upon type
- *              "from": <contract address>,
- *              "value": <content_address>,
- *              "type": <type>
+ *              "from": <contract address> or <user address>,
+ *              "value": <content_address> or <value>,
+ *              "action": <action>,
+ *              "type": <user-credit/user-content>
  *          }
  *       ]
  * }
  */
 module.exports.makeTransaction = function makeTransaction(req, res) {
-    const newContentContract = blockChain.addContentContract(req.body);
-    if (newContentContract){
+    const newTransaction = blockChain.makeTransaction(req.body);
+    if (newTransaction){
         main.broadcast(main.responseLatestMsg());
     }
-    res.send(newContentContract);
+    res.send(newTransaction);
 };
 
 /**
- *{
-    "content": <>
-    "action": <>
-    "entities": {},
-    "payload": {}
-}
+ * Format of Execute Contract Data
+ * {
+ *      "content": <content address>,
+ *      "action": <action buy/rent>,
+ *      "payload": {}
+ * }
+ * Execution Request Data
+ * {
+ *      "contract": "<contract address>",
+ *      "params": {},
+ *      "entities": [] + <content address>
+ * }
  */
 module.exports.executeContract = function executeContract(req, res) {
-    const newContentContract = blockChain.addContentContract(req.body);
-    if (newContentContract){
-        main.broadcast(main.responseLatestMsg());
-    }
-    res.send(newContentContract);
+    blockChain.executeContract(req.body).then(function (transactionData) {
+        const newTransaction = blockChain.makeTransaction(transactionData);
+        if (newTransaction){
+            main.broadcast(main.responseLatestMsg());
+        }
+        res.send(newTransaction);
+    }).catch(function (err) {
+        console.log(err);
+        res.send();
+    });
 };

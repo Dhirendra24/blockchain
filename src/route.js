@@ -7,5 +7,6 @@ module.exports.registerRoutes = function(app) {
     app.post('/addContent', Controller.addContent),
     app.post('/addContract', Controller.addContract),
     app.post('/addContentContract', Controller.addContentContract),
+    app.post('/executeContract', Controller.executeContract),
     app.post('/mineBlock', Controller.mine);
 };
