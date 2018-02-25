@@ -36,42 +36,48 @@ module.exports = class Block {
     }
 
     verifyContent() {
-        return this.state["author"].hasOwnProperty(this.data["author"]);
+        const users = this.data['entities'];
+        for (let i = 0; i < users.length; i++) {
+            if (!this.state["author"].hasOwnProperty(users[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     updateAuthorState() {
-        if (!this.state["author"].hasOwnProperty(this.data["author"])) {
-            this.state["author"][this.data["author"]] = Object.keys(this.state["author"]).length;
+        if (!this.state["author"].hasOwnProperty(this.data["address"])) {
+            this.state["author"][this.data["address"]] = this.index;
         }
     }
 
     updateContentState() {
-        if (!this.state["content"].hasOwnProperty(this.data["content"])) {
-            this.state["content"][this.data["content"]] = Object.keys(this.state["content"]).length;
+        if (!this.state["content"].hasOwnProperty(this.data["address"])) {
+            this.state["content"][this.data["address"]] = this.index;
+            this.updateContentContractState();
         }
     }
 
     updateContractState() {
-        if (!this.state["contract"].hasOwnProperty(this.data["contract"])) {
-            this.state["contract"][this.data["contract"]] = Object.keys(this.state["contract"]).length;
+        if (!this.state["contract"].hasOwnProperty(this.data["address"])) {
+            this.state["contract"][this.data["address"]] = this.index;
         }
     }
 
     updateContentContractState() {
-        const content = this.state["content"][this.data["content"]];
-        const actions = this.data["action"];
+        const content = this.state["content"][this.data["address"]];
+        const actions = this.data["content"]["actions"];
+        if (!this.state["content_contract"].hasOwnProperty(content)){
+            this.state["content_contract"][content] = {};
+        }
         const actionList = Object.keys(actions);
         for (let i = 0; i < actionList.length; i++) {
             const type = actionList[i];
             const contract = actions[type]["contract"];
             const params = actions[type]["params"];
-            this.state["content_contract"][content] = {
-                contract: this.state["contract"][contract],
-                type: type
+            this.state["content_contract"][content][type] = {
+                contract: this.state["contract"][contract]
             }
         }
-        Object.keys(actions).forEach(function (type) {
-
-        });
     }
 };

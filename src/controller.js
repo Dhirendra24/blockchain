@@ -23,7 +23,9 @@ module.exports.mine = function mine(req, res) {
 /**
  * Format of Author
  * {
- *  "author": "<author address>"
+ *  "username": "<username>",
+ *  "address": "<author address>",
+ *  "verification_signature": <>
  * }
  */
 module.exports.addAuthor = function addContent(req, res) {
@@ -37,8 +39,21 @@ module.exports.addAuthor = function addContent(req, res) {
 /**
  * Format of Content
  * {
- *  "content": "<content address>",
- *  "author": "<author address>"
+ *  "content": {
+ *      "actions": {
+ *          "buy": {
+ *              "contract": "<contract address>",
+ *              "params" {<kwargs of contract>}
+ *          },
+ *          "rent": {
+ *              "contract": "<contract address>",
+ *              "params" {<kwargs of contract>}
+ *          },
+ *          "meta": {}
+ *      }
+ *  },
+ *  "address: "<content address>",
+ *  "entities": ["<list user address>"]
  * }
  */
 module.exports.addContent = function addContent(req, res) {
@@ -52,9 +67,8 @@ module.exports.addContent = function addContent(req, res) {
 /**
  * Format of Contract
  * {
- *  "contract": "<contract address>",
- *  "requiredFields": [<list of fields>],
- *  ...
+ *  "contract": {},
+ *  "address": "<contract address>",
  * }
  */
 module.exports.addContract = function addContract(req, res) {
@@ -68,24 +82,61 @@ module.exports.addContract = function addContract(req, res) {
 /**
  * Format of Content Contract
  * {
- *  "content": "<content address>"
- *  "entities": {
- *      "author": "<author address>"
- *  },
- *  "actions": {
- *      "buy": {
- *          "contract": "<contract address>",
- *          "params" {<kwargs of contract>}
- *      },
- *      "rent": {
- *          "contract": "<contract address>",
- *          "params" {<kwargs of contract>}
- *      },
- *  },
- *  "meta": {}
+ *  "address": "<content address>"
+ *  "entities": ["<list user address>"],
+ *  "content": {
+ *      "actions": {
+ *          "buy": {
+ *              "contract": "<contract address>",
+ *              "params" {<kwargs of contract>}
+ *          },
+ *          "rent": {
+ *              "contract": "<contract address>",
+ *              "params" {<kwargs of contract>}
+ *          },
+ *          "meta": {}
+ *      }
+ *  }
  * }
  */
 module.exports.addContentContract = function addContentContract(req, res) {
+    const newContentContract = blockChain.addContentContract(req.body);
+    if (newContentContract){
+        main.broadcast(main.responseLatestMsg());
+    }
+    res.send(newContentContract);
+};
+
+/**
+ * {
+ *      "req_account": <>
+ *      "txns": [
+ *          {
+ *              "to": <user address>, (buyer address for BUY) - depends upon type
+ *              "from": <contract address>,
+ *              "value": <content_address>,
+ *              "type": <type>
+ *          }
+ *       ]
+ * }
+ */
+module.exports.makeTransaction = function makeTransaction(req, res) {
+    const newContentContract = blockChain.addContentContract(req.body);
+    if (newContentContract){
+        main.broadcast(main.responseLatestMsg());
+    }
+    res.send(newContentContract);
+};
+
+/**
+ *{
+    "content": <>
+    "action": <>
+    "entities": {},
+    "payload": {}
+}
+ */
+module.exports.executeContract = function executeContract(req, res) {
     const newContentContract = blockChain.addContentContract(req.body);
     if (newContentContract){
         main.broadcast(main.responseLatestMsg());
